@@ -1,0 +1,19 @@
+services:
+  site:
+    image: ghcr.io/example/docs:latest
+    container_name: docs
+    restart: unless-stopped
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docs.entrypoints=websecure"
+      - "traefik.http.routers.docs.tls=true"
+      - "traefik.http.routers.docs.tls.certresolver=cf"
+      - "traefik.http.routers.docs.rule=Host(`docs.example.com`) || Host(`www.docs.example.com`)"
+      - "traefik.http.routers.docs.service=docs"
+      - "traefik.http.services.docs.loadbalancer.server.port=80"
+
+networks:
+  traefik_proxy:
+    external: true
