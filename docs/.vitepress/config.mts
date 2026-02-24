@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'VitePress Template Site',
-  description: 'Starter content for a template-derived VitePress deployment',
+  title: 'Josh Phillips Sr',
+  description: 'Infrastructure, automation, and AI operations portfolio',
   themeConfig: {
+    logo: '/images/branding/josh-phillips-sr-logo.png',
     sidebar: [
       { text: 'Home', link: '/' },
       { text: 'Resume', link: '/Resume/' },

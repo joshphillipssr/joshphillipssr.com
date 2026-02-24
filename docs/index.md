@@ -1,11 +1,14 @@
-# Welcome
+# Josh Phillips Sr
 
-This repository is a starter VitePress site template.
+<img src="/images/branding/josh-phillips-sr-logo.png" alt="Josh Phillips Sr logo" style="max-width: 340px; width: 100%; height: auto; margin: 8px 0 16px 0;" />
 
-Use it to build a docs site, portfolio, or internal knowledge base, then deploy behind Traefik.
+This site highlights my public work across infrastructure, automation, endpoint/server operations, and AI agent systems.
 
-## Customize
+## Explore
 
-1. Update `docs/.vitepress/config.mts` for title, description, and navigation.
-2. Replace this page with your own homepage content.
-3. Update `docs/Resume/index.md` (or remove that section) based on your site goals.
+- **Projects:** `/projects/` for featured repositories and a generated public GitHub repo catalog.
+- **Resume:** `/Resume/` for profile and experience details.
+
+## Alternate Mark
+
+<img src="/images/branding/josh-avatar-c9cg24.png" alt="Josh Phillips Sr avatar" style="max-width: 220px; width: 100%; height: auto; margin-top: 8px;" />
