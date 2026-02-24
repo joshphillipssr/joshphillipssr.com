@@ -67,3 +67,27 @@ Risks:
 - Avoid editing deployment scripts unless necessary; keep content/theme changes separate from infra changes.
 - Keep `site.env` host-specific and uncommitted.
 - If custom middleware/labels are added, document them near `site.env` to reduce operator error.
+
+## Core vs Overlay Boundary (joshphillipssr.com)
+
+Treat this repository as a derived overlay on top of `VitePress-Template`.
+
+Core-first files (prefer upstream first, then sync down):
+
+1. `server/`
+2. `scripts/`
+3. `Dockerfile`
+4. `.github/workflows/`
+5. `site.env.example`
+6. Deployment sections in `README.md` and `Quick-Start.md`
+
+Overlay files (keep local to this site unless generally reusable):
+
+1. `docs/index.md`
+2. `docs/resume/index.md`
+3. `docs/projects/index.md`
+4. `docs/projects/public-repos.md`
+5. `docs/projects/data/public-repos.json`
+6. `docs/public/images/branding/`
+7. `docs/.vitepress/theme/`
+8. Branding/navigation specifics in `docs/.vitepress/config.mts`
