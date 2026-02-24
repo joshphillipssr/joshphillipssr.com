@@ -1,10 +1,11 @@
-# Josh Phillips Sr
-
 <div class="jp-hero">
+  <p class="jp-kicker">Infrastructure · Automation · AI Operations</p>
+  <h1 class="jp-title">Josh Phillips Sr</h1>
+
   <img class="jp-logo" src="/images/branding/josh-phillips-sr-logo.png" alt="Josh Phillips Sr logo" />
 
   <p class="jp-tagline">
-    Infrastructure, automation, endpoint and server operations, and AI agent systems with a practical deployment-first workflow.
+    Practical delivery across infrastructure, endpoint/server operations, and AI-driven workflows.
   </p>
 
   <div class="jp-grid">
