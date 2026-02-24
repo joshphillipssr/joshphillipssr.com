@@ -11,8 +11,13 @@ COPY . .
 #   "docs:build": "vitepress build"
 RUN yarn docs:build
 
-# Serve with nginx
-FROM nginx:alpine
-COPY --from=builder /app/docs/.vitepress/dist /usr/share/nginx/html
+# Runtime server (static docs + signed private resume endpoint)
+FROM node:20-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=builder /app/docs/.vitepress/dist /app/dist
+COPY server/site-server.mjs /app/server/site-server.mjs
+
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "/app/server/site-server.mjs"]

@@ -123,9 +123,30 @@ SITE_NAME="<site-name>" /opt/traefik/scripts/update_site.sh
 SITE_NAME="<site-name>" /opt/sites/<site-name>/scripts/cleanup.sh
 ```
 
+## 9. Optional: Expiring Private Resume Link
+
+Add these to `site.env`:
+
+```text
+SITE_BASE_URL=https://example.com
+RESUME_SIGNING_SECRET=<random-secret>
+RESUME_ROUTE=/_private/resume
+RESUME_LINK_TTL_SECONDS=900
+RESUME_PRIVATE_FILE=/run/private/resume.pdf
+RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.pdf
+```
+
+Then deploy/redeploy and generate a signed link:
+
+```bash
+ENV_FILE=/opt/sites/<site-name>/site.env \
+  /opt/sites/<site-name>/scripts/generate_private_resume_link.sh
+```
+
 ## Troubleshooting
 
 - `network not found`: run `NETWORK_NAME=traefik_proxy /opt/traefik/scripts/create_network.sh`
 - GHCR pull fails: verify package visibility and `SITE_IMAGE` value
 - TLS issues: verify Cloudflare proxy + DNS + SSL mode
 - Permission issues: run deployment as `deploy` user (or equivalent Docker-enabled user)
+- Signed link errors: verify `RESUME_SIGNING_SECRET`, link expiry, and `RESUME_PRIVATE_FILE_HOST` path

@@ -56,6 +56,30 @@ FORCE=false
 
 `site.env` is gitignored by default.
 
+## Optional: Expiring Private Resume Links
+
+This template supports signed, expiring links for a private file route.
+
+Key variables in `site.env`:
+
+```text
+SITE_BASE_URL=https://example.com
+RESUME_SIGNING_SECRET=<random-secret>
+RESUME_ROUTE=/_private/resume
+RESUME_LINK_TTL_SECONDS=900
+RESUME_PRIVATE_FILE=/run/private/resume.pdf
+RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.pdf
+```
+
+Generate a link:
+
+```bash
+ENV_FILE=/opt/sites/<site-name>/site.env \
+  /opt/sites/<site-name>/scripts/generate_private_resume_link.sh
+```
+
+If `RESUME_PRIVATE_FILE_HOST` is set, `deploy_to_host.sh` mounts that file read-only into the container.
+
 ## Script Responsibilities
 
 - `scripts/bootstrap_site_on_host.sh`
@@ -71,6 +95,9 @@ FORCE=false
 
 - `scripts/update_site.sh`
   - Pulls latest image and recreates the site container.
+
+- `scripts/generate_private_resume_link.sh`
+  - Generates signed URLs with expiry for `RESUME_ROUTE`.
 
 - `scripts/cleanup.sh`
   - Stops/removes the site stack and deletes generated site directory.

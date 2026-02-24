@@ -23,6 +23,10 @@ set -euo pipefail
 #   MIDDLEWARES    optional comma-separated middleware chain
 #   DEPLOY_NOW     true/false (default: true)
 #   FORCE          true/false overwrite existing compose (default: false)
+#
+# Optional private resume settings:
+#   RESUME_PRIVATE_FILE_HOST  host path to private resume file (mounted read-only)
+#   RESUME_PRIVATE_FILE       in-container path (default: /run/private/resume.pdf)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -49,6 +53,10 @@ Optional:
   MIDDLEWARES=
   DEPLOY_NOW=true
   FORCE=false
+
+Optional private resume settings:
+  RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.pdf
+  RESUME_PRIVATE_FILE=/run/private/resume.pdf
 EOF
 }
 
@@ -72,6 +80,8 @@ load_env() {
   local pre_middlewares="${MIDDLEWARES-}"
   local pre_deploy_now="${DEPLOY_NOW-}"
   local pre_force="${FORCE-}"
+  local pre_resume_private_file_host="${RESUME_PRIVATE_FILE_HOST-}"
+  local pre_resume_private_file="${RESUME_PRIVATE_FILE-}"
 
   local has_site_name="${SITE_NAME+x}"
   local has_site_hosts="${SITE_HOSTS+x}"
@@ -84,6 +94,8 @@ load_env() {
   local has_middlewares="${MIDDLEWARES+x}"
   local has_deploy_now="${DEPLOY_NOW+x}"
   local has_force="${FORCE+x}"
+  local has_resume_private_file_host="${RESUME_PRIVATE_FILE_HOST+x}"
+  local has_resume_private_file="${RESUME_PRIVATE_FILE+x}"
 
   if [[ -f "$ENV_FILE" ]]; then
     log "Loading config from ${ENV_FILE}"
@@ -106,6 +118,8 @@ load_env() {
   if [[ -n "$has_middlewares" ]]; then MIDDLEWARES="$pre_middlewares"; fi
   if [[ -n "$has_deploy_now" ]]; then DEPLOY_NOW="$pre_deploy_now"; fi
   if [[ -n "$has_force" ]]; then FORCE="$pre_force"; fi
+  if [[ -n "$has_resume_private_file_host" ]]; then RESUME_PRIVATE_FILE_HOST="$pre_resume_private_file_host"; fi
+  if [[ -n "$has_resume_private_file" ]]; then RESUME_PRIVATE_FILE="$pre_resume_private_file"; fi
 }
 
 apply_defaults() {
@@ -117,6 +131,7 @@ apply_defaults() {
   MIDDLEWARES="${MIDDLEWARES:-}"
   DEPLOY_NOW="${DEPLOY_NOW:-true}"
   FORCE="${FORCE:-false}"
+  RESUME_PRIVATE_FILE="${RESUME_PRIVATE_FILE:-/run/private/resume.pdf}"
 }
 
 require_cmd() {
@@ -156,6 +171,11 @@ validate_inputs() {
       exit 1
     fi
   done
+
+  if [[ -n "${RESUME_PRIVATE_FILE_HOST:-}" && ! -f "${RESUME_PRIVATE_FILE_HOST}" ]]; then
+    echo "RESUME_PRIVATE_FILE_HOST does not exist or is not a file: ${RESUME_PRIVATE_FILE_HOST}" >&2
+    exit 1
+  fi
 }
 
 ensure_docker() {
@@ -180,6 +200,8 @@ write_compose() {
   local compose_file="${site_dir}/docker-compose.yml"
   local rule_hosts=""
   local middleware_label=""
+  local resume_volume=""
+  local env_file_block=""
   local host
 
   if [[ -f "$compose_file" ]] && ! is_true "$FORCE"; then
@@ -200,6 +222,22 @@ write_compose() {
     middleware_label="      - \"traefik.http.routers.${SITE_NAME}.middlewares=${MIDDLEWARES}\""
   fi
 
+  if [[ -f "$ENV_FILE" ]]; then
+    env_file_block="$(cat <<EOF
+    env_file:
+      - ${ENV_FILE}
+EOF
+)"
+  fi
+
+  if [[ -n "${RESUME_PRIVATE_FILE_HOST:-}" ]]; then
+    resume_volume="$(cat <<EOF
+    volumes:
+      - "${RESUME_PRIVATE_FILE_HOST}:${RESUME_PRIVATE_FILE}:ro"
+EOF
+)"
+  fi
+
   mkdir -p "$site_dir"
   log "Writing ${compose_file}"
   cat >"$compose_file" <<EOF
@@ -208,6 +246,10 @@ services:
     image: ${SITE_IMAGE}
     container_name: ${SITE_NAME}
     restart: unless-stopped
+${env_file_block}
+    environment:
+      - PORT=${SITE_PORT}
+${resume_volume}
     networks:
       - ${NETWORK_NAME}
     labels:

@@ -22,6 +22,8 @@ Operator checklist for deploying a template-derived VitePress site behind Traefi
 - [ ] Set `SITE_IMAGE` in `site.env`.
 - [ ] Verify `NETWORK_NAME=traefik_proxy` unless intentionally changed.
 - [ ] Review optional vars (`SITE_PORT`, `MIDDLEWARES`, `DEPLOY_NOW`, `FORCE`).
+- [ ] If using expiring private resume links: set `RESUME_SIGNING_SECRET`.
+- [ ] If using expiring private resume links: set `RESUME_PRIVATE_FILE_HOST` to a real file path.
 
 ## Deploy
 
@@ -34,6 +36,7 @@ Operator checklist for deploying a template-derived VitePress site behind Traefi
 - [ ] `curl -I https://<primary-hostname>` returns expected HTTP status.
 - [ ] Browser test confirms certificate and content are correct.
 - [ ] Traefik logs show successful routing to site container.
+- [ ] If using private links: generate one with `scripts/generate_private_resume_link.sh` and verify download.
 
 ## Rollback
 
@@ -54,3 +57,5 @@ Use one of these rollback methods:
   - Re-check [Traefik-Deployment Cloudflare Setup Baseline](https://github.com/joshphillipssr/Traefik-Deployment/blob/main/CLOUDFLARE-SETUP.md) and Traefik resolver configuration.
 - Container starts but route fails:
   - Check `SITE_PORT` matches the app container listening port.
+- Private link 403/410 errors:
+  - Confirm `RESUME_SIGNING_SECRET` matches link generator environment and the link is not expired.
