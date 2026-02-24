@@ -7,7 +7,7 @@ export default defineConfig({
     logo: '/images/branding/josh-phillips-sr-logo.png',
     sidebar: [
       { text: 'Home', link: '/' },
-      { text: 'Resume', link: '/Resume/' },
+      { text: 'Resume', link: '/resume/' },
       { text: 'Projects', link: '/projects/' }
     ]
   }

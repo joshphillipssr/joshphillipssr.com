@@ -13,7 +13,7 @@
       <span class="jp-card-title">Projects</span>
       <span class="jp-card-text">Featured repositories and the generated public GitHub catalog.</span>
     </a>
-    <a class="jp-card" href="/Resume/">
+    <a class="jp-card" href="/resume/">
       <span class="jp-card-title">Resume</span>
       <span class="jp-card-text">Professional profile, experience, and role history.</span>
     </a>
