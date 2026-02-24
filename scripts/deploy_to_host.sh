@@ -26,7 +26,7 @@ set -euo pipefail
 #
 # Optional private resume settings:
 #   RESUME_PRIVATE_FILE_HOST  host path to private resume file (mounted read-only)
-#   RESUME_PRIVATE_FILE       in-container path (default: /run/private/resume.pdf)
+#   RESUME_PRIVATE_FILE       in-container path (default: /run/private/resume.md)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -55,8 +55,8 @@ Optional:
   FORCE=false
 
 Optional private resume settings:
-  RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.pdf
-  RESUME_PRIVATE_FILE=/run/private/resume.pdf
+  RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.md
+  RESUME_PRIVATE_FILE=/run/private/resume.md
 EOF
 }
 
@@ -131,7 +131,7 @@ apply_defaults() {
   MIDDLEWARES="${MIDDLEWARES:-}"
   DEPLOY_NOW="${DEPLOY_NOW:-true}"
   FORCE="${FORCE:-false}"
-  RESUME_PRIVATE_FILE="${RESUME_PRIVATE_FILE:-/run/private/resume.pdf}"
+  RESUME_PRIVATE_FILE="${RESUME_PRIVATE_FILE:-/run/private/resume.md}"
 }
 
 require_cmd() {

@@ -67,8 +67,8 @@ SITE_BASE_URL=https://example.com
 RESUME_SIGNING_SECRET=<random-secret>
 RESUME_ROUTE=/_private/resume
 RESUME_LINK_TTL_SECONDS=900
-RESUME_PRIVATE_FILE=/run/private/resume.pdf
-RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.pdf
+RESUME_PRIVATE_FILE=/run/private/resume.md
+RESUME_PRIVATE_FILE_HOST=/opt/secure/private-resume.md
 ```
 
 Generate a link:
