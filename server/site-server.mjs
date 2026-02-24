@@ -10,7 +10,6 @@ const RESUME_ROUTE = normalizeRoute(process.env.RESUME_ROUTE || '/_private/resum
 const RESUME_FILE = process.env.RESUME_PRIVATE_FILE || '/run/private/resume.md'
 const RESUME_SECRET = process.env.RESUME_SIGNING_SECRET || ''
 
-const ASK_PAGE_ROUTE = normalizeRoute(process.env.ASK_JOSHGPT_ROUTE || '/ask-joshgpt')
 const ASK_API_ROUTE = normalizeRoute(process.env.ASK_JOSHGPT_API_ROUTE || '/api/ask-joshgpt')
 const ASK_CONTEXT_DIR = process.env.ASK_JOSHGPT_CONTEXT_DIR || '/app/context/docs'
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''
@@ -628,219 +627,6 @@ async function readJsonBody(req, maxBytes) {
   })
 }
 
-function buildAskJoshGptPage() {
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ask JoshGPT</title>
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <style>
-      :root {
-        --bg: #f6f7f9;
-        --fg: #151515;
-        --muted: #5a5a5a;
-        --line: #d7d9de;
-        --panel: #ffffff;
-        --accent: #0c66d6;
-      }
-
-      * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-        background: var(--bg);
-        color: var(--fg);
-      }
-
-      .wrap {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: 24px 16px 32px;
-      }
-
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 16px;
-      }
-
-      h1 {
-        margin: 0 0 6px;
-        font-size: 1.8rem;
-      }
-
-      .muted {
-        margin: 0 0 16px;
-        color: var(--muted);
-        font-size: 0.96rem;
-        line-height: 1.5;
-      }
-
-      textarea {
-        width: 100%;
-        min-height: 120px;
-        resize: vertical;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 12px;
-        font: inherit;
-        line-height: 1.4;
-      }
-
-      .actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: 12px;
-      }
-
-      button {
-        border: 1px solid var(--accent);
-        background: var(--accent);
-        color: #fff;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-size: 0.95rem;
-        cursor: pointer;
-      }
-
-      button[disabled] {
-        opacity: 0.7;
-        cursor: wait;
-      }
-
-      .status {
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
-      .answer {
-        margin-top: 16px;
-        white-space: pre-wrap;
-        line-height: 1.6;
-      }
-
-      .sources {
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px solid var(--line);
-      }
-
-      .sources ul {
-        margin: 8px 0 0;
-        padding-left: 18px;
-      }
-
-      .sources a {
-        color: var(--accent);
-        text-decoration: none;
-      }
-
-      .toplinks {
-        margin-bottom: 12px;
-      }
-
-      .toplinks a {
-        color: var(--accent);
-        text-decoration: none;
-        margin-right: 12px;
-        font-size: 0.92rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="toplinks">
-        <a href="/">Home</a>
-        <a href="/projects/">Projects</a>
-        <a href="/resume/">Resume</a>
-      </div>
-      <div class="card">
-        <h1>Ask JoshGPT</h1>
-        <p class="muted">Ask questions about Josh Phillips Sr, this website, and the public GitHub projects list. Responses are grounded in site context.</p>
-        <textarea id="question" placeholder="Example: What MCP and AI work has Josh shipped recently?"></textarea>
-        <div class="actions">
-          <button id="ask-btn" type="button">Ask JoshGPT</button>
-          <span class="status" id="status"></span>
-        </div>
-        <div class="answer" id="answer"></div>
-        <div class="sources" id="sources" style="display:none"></div>
-      </div>
-    </div>
-    <script>
-      (() => {
-        const questionEl = document.getElementById('question')
-        const askButtonEl = document.getElementById('ask-btn')
-        const statusEl = document.getElementById('status')
-        const answerEl = document.getElementById('answer')
-        const sourcesEl = document.getElementById('sources')
-
-        function setBusy(isBusy) {
-          askButtonEl.disabled = isBusy
-          askButtonEl.textContent = isBusy ? 'Thinking...' : 'Ask JoshGPT'
-        }
-
-        function renderSources(sources) {
-          if (!Array.isArray(sources) || sources.length === 0) {
-            sourcesEl.style.display = 'none'
-            sourcesEl.innerHTML = ''
-            return
-          }
-
-          const items = sources.map((source) => {
-            const title = String(source.title || 'Source')
-            const route = String(source.route || '#')
-            return '<li><a href="' + route + '" target="_blank" rel="noreferrer">' + title + '</a></li>'
-          }).join('')
-
-          sourcesEl.innerHTML = '<strong>Context Sources</strong><ul>' + items + '</ul>'
-          sourcesEl.style.display = ''
-        }
-
-        askButtonEl.addEventListener('click', async () => {
-          const question = questionEl.value.trim()
-          if (!question) {
-            statusEl.textContent = 'Enter a question first.'
-            return
-          }
-
-          setBusy(true)
-          statusEl.textContent = 'Searching site context...'
-          answerEl.textContent = ''
-          renderSources([])
-
-          try {
-            const response = await fetch('/api/ask-joshgpt', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ question })
-            })
-
-            const payload = await response.json().catch(() => ({}))
-            if (!response.ok) {
-              throw new Error(payload.error || 'Request failed')
-            }
-
-            answerEl.textContent = String(payload.answer || '').trim()
-            renderSources(payload.sources || [])
-            statusEl.textContent = 'Done.'
-          } catch (error) {
-            statusEl.textContent = 'Unable to complete request.'
-            answerEl.textContent = error instanceof Error ? error.message : 'Unexpected error.'
-          } finally {
-            setBusy(false)
-          }
-        })
-      })()
-    </script>
-  </body>
-</html>`
-}
-
 function buildResumeHtmlPage(content, expiresAt) {
   const rendered = renderMarkdown(content)
   const expiresUtc = new Date(expiresAt * 1000).toISOString().replace('T', ' ').replace('.000Z', ' UTC')
@@ -1166,11 +952,6 @@ const server = createServer(async (req, res) => {
     return
   }
 
-  if (isRouteMatch(ASK_PAGE_ROUTE, requestUrl.pathname)) {
-    sendHtml(req, res, buildAskJoshGptPage())
-    return
-  }
-
   if (isRouteMatch(RESUME_ROUTE, requestUrl.pathname)) {
     servePrivateResume(req, res, requestUrl)
     return
@@ -1183,6 +964,5 @@ server.listen(PORT, () => {
   console.log(`Site server listening on port ${PORT}`)
   console.log(`Static directory: ${STATIC_DIR}`)
   console.log(`Private resume route: ${RESUME_ROUTE}`)
-  console.log(`Ask JoshGPT page route: ${ASK_PAGE_ROUTE}`)
   console.log(`Ask JoshGPT API route: ${ASK_API_ROUTE}`)
 })
