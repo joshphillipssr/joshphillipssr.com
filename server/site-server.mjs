@@ -435,7 +435,7 @@ function buildResumeHtmlPage(content, expiresAt) {
   </head>
   <body>
     <div class="toolbar">
-      <button id="print-btn" type="button">Create PDF</button>
+      <button id="print-btn" type="button">Print / Create PDF</button>
       <span class="meta">Link expires: ${escapeHtml(expiresUtc)}</span>
       <a href="/" target="_blank" rel="noreferrer">Open Public Site</a>
     </div>
