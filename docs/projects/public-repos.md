@@ -2,6 +2,7 @@
 
 | Repository | Language | Updated (UTC) | Description |
 |---|---|---|---|
+| [joshphillipssr.com](https://github.com/joshphillipssr/joshphillipssr.com) | Shell | 2026-02-24T09:20:21Z | Template-derived VitePress site for joshphillipssr.com |
 | [endpoint-tools](https://github.com/joshphillipssr/endpoint-tools) | PowerShell | 2026-02-24T09:03:16Z | Consolidated endpoint automation/admin script collection. |
 | [server-tools](https://github.com/joshphillipssr/server-tools) | PowerShell | 2026-02-24T08:52:57Z | Consolidated server automation and remediation scripts |
 | [python-network-tools](https://github.com/joshphillipssr/python-network-tools) | Python | 2026-02-24T08:24:36Z | Consolidated Python network tooling lab: ARP spoofing, MAC changer, scanner, and packet sniffer. |
@@ -15,7 +16,6 @@
 | [mcp-auth-broker](https://github.com/joshphillipssr/mcp-auth-broker) | - | 2026-02-24T08:00:49Z | MCP auth broker for agent token issuance with secret-manager integration. |
 | [github-issue-email-parser](https://github.com/joshphillipssr/github-issue-email-parser) | Python | 2026-02-23T18:32:13Z | Parse GitHub issue updates and email replies via Microsoft Graph webhooks |
 | [Traefik-Deployment](https://github.com/joshphillipssr/Traefik-Deployment) | Shell | 2026-02-23T14:59:18Z | Traefik Host Server Deployment |
-| [joshphillipssr.com](https://github.com/joshphillipssr/joshphillipssr.com) | Shell | 2026-02-23T13:04:54Z | Template-derived VitePress site for joshphillipssr.com |
 | [VitePress-Template](https://github.com/joshphillipssr/VitePress-Template) | Shell | 2026-02-23T12:47:28Z | VitePress Template Site |
 | [joshphillipssr](https://github.com/joshphillipssr/joshphillipssr) | - | 2026-02-07T11:51:56Z | Config files for my GitHub profile. |
 | [LLM-LogOps](https://github.com/joshphillipssr/LLM-LogOps) | PowerShell | 2026-02-03T08:45:20Z | - |
@@ -29,4 +29,4 @@
 | [immybot-documentation](https://github.com/joshphillipssr/immybot-documentation) | TypeScript | 2025-08-09T18:18:23Z | ImmyBot Documentation |
 | [URL-Checker](https://github.com/joshphillipssr/URL-Checker) | HTML | 2025-05-30T06:45:10Z | https://urlchecker.joshgpt.io |
 
-_Last refreshed: 2026-02-24 09:19:32Z_
+_Last refreshed: 2026-02-24 09:29:11Z_

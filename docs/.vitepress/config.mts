@@ -7,7 +7,7 @@ export default defineConfig({
     sidebar: [
       { text: 'Home', link: '/' },
       { text: 'Resume', link: '/Resume/' },
-      { text: 'Projects', link: '/Projects/' }
+      { text: 'Projects', link: '/projects/' }
     ]
   }
 })
