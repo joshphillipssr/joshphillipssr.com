@@ -1,0 +1,105 @@
+/* Navigation branding */
+.VPNavBarTitle .logo {
+  height: 30px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+}
+
+/* Homepage brand section */
+.jp-hero {
+  margin-top: 0.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(59, 130, 246, 0.07), rgba(16, 185, 129, 0.06));
+}
+
+.jp-logo {
+  display: block;
+  width: min(100%, 460px);
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.jp-tagline {
+  margin: 0 0 1rem 0;
+  color: var(--vp-c-text-1);
+  font-size: 1.03rem;
+  line-height: 1.6;
+}
+
+.jp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 1.25rem 0;
+}
+
+.jp-card {
+  display: block;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  padding: 0.85rem 0.95rem;
+  background: var(--vp-c-bg-soft);
+  text-decoration: none;
+}
+
+.jp-card-title {
+  display: block;
+  font-weight: 650;
+  color: var(--vp-c-text-1);
+}
+
+.jp-card-text {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--vp-c-text-2);
+  font-size: 0.94rem;
+}
+
+.jp-card:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+.jp-alt {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.25rem;
+}
+
+.jp-avatar {
+  width: 132px;
+  height: 132px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid var(--vp-c-divider);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.jp-alt-text {
+  color: var(--vp-c-text-2);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .VPNavBarTitle .logo {
+    height: 26px;
+    max-width: 152px;
+  }
+
+  .jp-hero {
+    padding: 1rem;
+  }
+
+  .jp-alt {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .jp-avatar {
+    width: 108px;
+    height: 108px;
+  }
+}
