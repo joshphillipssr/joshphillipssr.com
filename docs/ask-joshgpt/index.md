@@ -24,6 +24,44 @@ const isLoading = ref(false)
 const characterCount = computed(() => question.value.length)
 const canSubmit = computed(() => question.value.trim().length >= 3 && !isLoading.value)
 
+async function parseAskPayload(response: Response): Promise<AskPayload> {
+  const contentType = (response.headers.get('content-type') || '').toLowerCase()
+
+  if (contentType.includes('application/json')) {
+    const parsed = (await response.json()) as AskPayload | null
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('Ask JoshGPT returned invalid JSON.')
+    }
+
+    return parsed
+  }
+
+  const bodyText = (await response.text()).trim()
+  if (!response.ok) {
+    throw new Error(bodyText ? `Request failed (${response.status}): ${bodyText.slice(0, 160)}` : `Request failed (${response.status})`)
+  }
+
+  const preview = bodyText.toLowerCase()
+  if (preview.startsWith('<!doctype') || preview.startsWith('<html')) {
+    throw new Error('Edge security challenge returned HTML instead of API JSON. Refresh and try again.')
+  }
+
+  throw new Error(`Unexpected API response format (${contentType || 'unknown'}).`)
+}
+
+function sanitizeSources(value: unknown): AskSource[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .filter((entry): entry is AskSource => Boolean(entry) && typeof entry === 'object')
+    .map((entry) => ({
+      title: typeof entry.title === 'string' ? entry.title : '',
+      route: typeof entry.route === 'string' ? entry.route : ''
+    }))
+}
+
 async function submitQuestion() {
   const trimmed = question.value.trim()
   error.value = ''
@@ -48,14 +86,19 @@ async function submitQuestion() {
       body: JSON.stringify({ question: trimmed })
     })
 
-    const payload = (await response.json().catch(() => ({}))) as AskPayload
+    const payload = await parseAskPayload(response)
     if (!response.ok) {
       throw new Error(payload.error || `Request failed (${response.status})`)
     }
 
-    answer.value = String(payload.answer || '').trim()
-    sources.value = Array.isArray(payload.sources) ? payload.sources : []
-    model.value = String(payload.model || '')
+    const nextAnswer = typeof payload.answer === 'string' ? payload.answer.trim() : ''
+    if (!nextAnswer) {
+      throw new Error('Ask JoshGPT returned an empty response. Please try again.')
+    }
+
+    answer.value = nextAnswer
+    sources.value = sanitizeSources(payload.sources)
+    model.value = typeof payload.model === 'string' ? payload.model : ''
     status.value = 'Done.'
   } catch (requestError) {
     const message = requestError instanceof Error ? requestError.message : 'Unexpected request error.'
@@ -84,7 +127,7 @@ Ask questions about this site and public GitHub projects. Responses are grounded
   />
 
   <div class="jp-ask-actions">
-    <button class="jp-ask-button" :disabled="!canSubmit" @click="submitQuestion">
+    <button type="button" class="jp-ask-button" :disabled="!canSubmit" @click.prevent="submitQuestion">
       {{ isLoading ? 'Thinking...' : 'Ask JoshGPT' }}
     </button>
     <span class="jp-ask-meta">{{ characterCount }} chars</span>
