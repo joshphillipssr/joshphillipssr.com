@@ -466,7 +466,7 @@ function servePrivateResume(req, res, requestUrl) {
   const expiresAt = Number.parseInt(expiry, 10)
   const now = Math.floor(Date.now() / 1000)
   if (Number.isNaN(expiresAt) || expiresAt <= now) {
-    sendText(req, res, 410, 'Link has expired')
+    sendText(req, res, 410, 'Link has expired. Email josh@joshphillipssr.com for a new link.')
     return
   }
 
