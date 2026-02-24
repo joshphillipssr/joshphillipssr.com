@@ -6,7 +6,14 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 1
 fi
 
-OWNER="${1:-joshphillipssr}"
+OWNER="${1:-}"
+if [[ -z "$OWNER" ]]; then
+  OWNER="$(gh api user --jq .login 2>/dev/null || true)"
+fi
+if [[ -z "$OWNER" ]]; then
+  echo "GitHub owner is required. Pass as first argument: ./scripts/sync_github_repos.sh <owner>" >&2
+  exit 1
+fi
 LIMIT="${REPO_LIMIT:-200}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

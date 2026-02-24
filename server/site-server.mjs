@@ -10,17 +10,18 @@ const RESUME_ROUTE = normalizeRoute(process.env.RESUME_ROUTE || '/_private/resum
 const RESUME_FILE = process.env.RESUME_PRIVATE_FILE || '/run/private/resume.md'
 const RESUME_SECRET = process.env.RESUME_SIGNING_SECRET || ''
 
-const ASK_API_ROUTE = normalizeRoute(process.env.ASK_JOSHGPT_API_ROUTE || '/api/ask-joshgpt')
-const ASK_CONTEXT_DIR = process.env.ASK_JOSHGPT_CONTEXT_DIR || '/app/context/docs'
+const ASK_API_ROUTE = normalizeRoute(process.env.ASK_JOSHGPT_API_ROUTE || process.env.ASK_ASSISTANT_API_ROUTE || '/api/ask-joshgpt')
+const LEGACY_ASK_API_ROUTE = '/api/ask-assistant'
+const ASK_CONTEXT_DIR = process.env.ASK_JOSHGPT_CONTEXT_DIR || process.env.ASK_ASSISTANT_CONTEXT_DIR || '/app/context/docs'
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '')
-const ASK_JOSHGPT_MODEL = process.env.ASK_JOSHGPT_MODEL || 'gpt-4o-mini'
-const ASK_JOSHGPT_MAX_TOKENS = parseInteger(process.env.ASK_JOSHGPT_MAX_TOKENS, 700, 200, 1600)
-const ASK_JOSHGPT_TEMPERATURE = parseNumber(process.env.ASK_JOSHGPT_TEMPERATURE, 0.2, 0, 1)
-const ASK_JOSHGPT_TIMEOUT_MS = parseInteger(process.env.ASK_JOSHGPT_TIMEOUT_MS, 30000, 5000, 120000)
-const ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS = parseInteger(process.env.ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS, 300, 30, 3600)
-const ASK_JOSHGPT_RATE_LIMIT_MAX = parseInteger(process.env.ASK_JOSHGPT_RATE_LIMIT_MAX, 10, 1, 200)
-const ASK_JOSHGPT_MAX_QUESTION_CHARS = parseInteger(process.env.ASK_JOSHGPT_MAX_QUESTION_CHARS, 1200, 100, 5000)
+const ASK_JOSHGPT_MODEL = process.env.ASK_JOSHGPT_MODEL || process.env.ASK_ASSISTANT_MODEL || 'gpt-4o-mini'
+const ASK_JOSHGPT_MAX_TOKENS = parseInteger(process.env.ASK_JOSHGPT_MAX_TOKENS || process.env.ASK_ASSISTANT_MAX_TOKENS, 700, 200, 1600)
+const ASK_JOSHGPT_TEMPERATURE = parseNumber(process.env.ASK_JOSHGPT_TEMPERATURE || process.env.ASK_ASSISTANT_TEMPERATURE, 0.2, 0, 1)
+const ASK_JOSHGPT_TIMEOUT_MS = parseInteger(process.env.ASK_JOSHGPT_TIMEOUT_MS || process.env.ASK_ASSISTANT_TIMEOUT_MS, 30000, 5000, 120000)
+const ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS = parseInteger(process.env.ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS || process.env.ASK_ASSISTANT_RATE_LIMIT_WINDOW_SECONDS, 300, 30, 3600)
+const ASK_JOSHGPT_RATE_LIMIT_MAX = parseInteger(process.env.ASK_JOSHGPT_RATE_LIMIT_MAX || process.env.ASK_ASSISTANT_RATE_LIMIT_MAX, 10, 1, 200)
+const ASK_JOSHGPT_MAX_QUESTION_CHARS = parseInteger(process.env.ASK_JOSHGPT_MAX_QUESTION_CHARS || process.env.ASK_ASSISTANT_MAX_QUESTION_CHARS, 1200, 100, 5000)
 
 const ASK_RATE_LIMIT_WINDOW_MS = ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS * 1000
 const ASK_RATE_LIMIT_STATE = new Map()
@@ -940,8 +941,7 @@ assertStartup()
 
 const server = createServer(async (req, res) => {
   const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)
-
-  if (isRouteMatch(ASK_API_ROUTE, requestUrl.pathname)) {
+  if (isRouteMatch(ASK_API_ROUTE, requestUrl.pathname) || isRouteMatch(LEGACY_ASK_API_ROUTE, requestUrl.pathname)) {
     await handleAskJoshGpt(req, res)
     return
   }
@@ -964,5 +964,6 @@ server.listen(PORT, () => {
   console.log(`Site server listening on port ${PORT}`)
   console.log(`Static directory: ${STATIC_DIR}`)
   console.log(`Private resume route: ${RESUME_ROUTE}`)
+  console.log(`Legacy API route supported: ${LEGACY_ASK_API_ROUTE}`)
   console.log(`Ask JoshGPT API route: ${ASK_API_ROUTE}`)
 })

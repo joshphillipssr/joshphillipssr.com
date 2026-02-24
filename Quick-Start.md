@@ -153,6 +153,8 @@ OPENAI_API_KEY=<secret>
 
 Optional tuning values:
 
+Legacy `ASK_ASSISTANT_*` names are also accepted for compatibility.
+
 ```text
 ASK_JOSHGPT_MODEL=gpt-4o-mini
 ASK_JOSHGPT_MAX_TOKENS=700
