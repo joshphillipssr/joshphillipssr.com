@@ -8,7 +8,8 @@ export default defineConfig({
     sidebar: [
       { text: 'Home', link: '/' },
       { text: 'Resume', link: '/resume/' },
-      { text: 'Projects', link: '/projects/' }
+      { text: 'Projects', link: '/projects/' },
+      { text: 'Ask JoshGPT', link: '/ask-joshgpt/' }
     ]
   }
 })

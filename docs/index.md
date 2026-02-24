@@ -17,6 +17,10 @@
       <span class="jp-card-title">Resume</span>
       <span class="jp-card-text">Professional profile, experience, and role history.</span>
     </a>
+    <a class="jp-card" href="/ask-joshgpt/">
+      <span class="jp-card-title">Ask JoshGPT</span>
+      <span class="jp-card-text">AI Q&A grounded in this site plus Josh's public GitHub projects.</span>
+    </a>
   </div>
 
   <div class="jp-alt">

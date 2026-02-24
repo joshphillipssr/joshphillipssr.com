@@ -58,7 +58,7 @@ FORCE=false
 
 ## Optional: Expiring Private Resume Links
 
-This template supports signed, expiring links for a private file route.
+This template supports signed, expiring links for a private markdown resume route.
 
 Key variables in `site.env`:
 
@@ -79,6 +79,35 @@ ENV_FILE=/opt/sites/<site-name>/site.env \
 ```
 
 If `RESUME_PRIVATE_FILE_HOST` is set, `deploy_to_host.sh` mounts that file read-only into the container.
+
+## Optional: Ask JoshGPT
+
+Ask JoshGPT provides AI Q&A grounded in local site docs plus public GitHub repo metadata.
+
+Required variable:
+
+```text
+OPENAI_API_KEY=<secret>
+```
+
+Optional variables:
+
+```text
+ASK_JOSHGPT_MODEL=gpt-4o-mini
+ASK_JOSHGPT_MAX_TOKENS=700
+ASK_JOSHGPT_TEMPERATURE=0.2
+ASK_JOSHGPT_TIMEOUT_MS=30000
+ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS=300
+ASK_JOSHGPT_RATE_LIMIT_MAX=10
+ASK_JOSHGPT_MAX_QUESTION_CHARS=1200
+```
+
+Routes:
+
+```text
+/ask-joshgpt/        # Ask JoshGPT UI page
+/api/ask-joshgpt     # backend API endpoint
+```
 
 ## Script Responsibilities
 

@@ -17,6 +17,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/docs/.vitepress/dist /app/dist
+COPY --from=builder /app/docs/index.md /app/context/docs/index.md
+COPY --from=builder /app/docs/resume/index.md /app/context/docs/resume/index.md
+COPY --from=builder /app/docs/projects/index.md /app/context/docs/projects/index.md
+COPY --from=builder /app/docs/projects/public-repos.md /app/context/docs/projects/public-repos.md
+COPY --from=builder /app/docs/projects/data/public-repos.json /app/context/docs/projects/data/public-repos.json
 COPY server/site-server.mjs /app/server/site-server.mjs
 
 EXPOSE 80

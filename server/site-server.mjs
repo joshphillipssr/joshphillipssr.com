@@ -4,10 +4,34 @@ import { createServer } from 'node:http'
 import path from 'node:path'
 
 const STATIC_DIR = process.env.STATIC_DIR || '/app/dist'
-const PORT = Number.parseInt(process.env.PORT || '80', 10)
+const PORT = parseInteger(process.env.PORT, 80, 1, 65535)
+
 const RESUME_ROUTE = normalizeRoute(process.env.RESUME_ROUTE || '/_private/resume')
 const RESUME_FILE = process.env.RESUME_PRIVATE_FILE || '/run/private/resume.md'
 const RESUME_SECRET = process.env.RESUME_SIGNING_SECRET || ''
+
+const ASK_PAGE_ROUTE = normalizeRoute(process.env.ASK_JOSHGPT_ROUTE || '/ask-joshgpt')
+const ASK_API_ROUTE = normalizeRoute(process.env.ASK_JOSHGPT_API_ROUTE || '/api/ask-joshgpt')
+const ASK_CONTEXT_DIR = process.env.ASK_JOSHGPT_CONTEXT_DIR || '/app/context/docs'
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''
+const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '')
+const ASK_JOSHGPT_MODEL = process.env.ASK_JOSHGPT_MODEL || 'gpt-4o-mini'
+const ASK_JOSHGPT_MAX_TOKENS = parseInteger(process.env.ASK_JOSHGPT_MAX_TOKENS, 700, 200, 1600)
+const ASK_JOSHGPT_TEMPERATURE = parseNumber(process.env.ASK_JOSHGPT_TEMPERATURE, 0.2, 0, 1)
+const ASK_JOSHGPT_TIMEOUT_MS = parseInteger(process.env.ASK_JOSHGPT_TIMEOUT_MS, 30000, 5000, 120000)
+const ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS = parseInteger(process.env.ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS, 300, 30, 3600)
+const ASK_JOSHGPT_RATE_LIMIT_MAX = parseInteger(process.env.ASK_JOSHGPT_RATE_LIMIT_MAX, 10, 1, 200)
+const ASK_JOSHGPT_MAX_QUESTION_CHARS = parseInteger(process.env.ASK_JOSHGPT_MAX_QUESTION_CHARS, 1200, 100, 5000)
+
+const ASK_RATE_LIMIT_WINDOW_MS = ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS * 1000
+const ASK_RATE_LIMIT_STATE = new Map()
+
+const ASK_STOP_WORDS = new Set([
+  'the', 'and', 'for', 'with', 'that', 'this', 'from', 'have', 'has', 'are', 'was', 'were', 'you', 'your',
+  'about', 'into', 'over', 'under', 'after', 'before', 'where', 'what', 'when', 'who', 'how', 'why', 'can',
+  'could', 'should', 'would', 'does', 'did', 'will', 'just', 'than', 'then', 'also', 'more', 'most', 'some',
+  'site', 'joshphillipssr', 'com'
+])
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -29,9 +53,45 @@ const MIME_TYPES = {
   '.pdf': 'application/pdf'
 }
 
+const ASK_CONTEXT_SECTIONS = loadAskJoshGptContext()
+
+function parseInteger(value, fallback, min, max) {
+  const parsed = Number.parseInt(String(value || ''), 10)
+  if (Number.isNaN(parsed)) {
+    return fallback
+  }
+
+  if (parsed < min) {
+    return min
+  }
+
+  if (parsed > max) {
+    return max
+  }
+
+  return parsed
+}
+
+function parseNumber(value, fallback, min, max) {
+  const parsed = Number.parseFloat(String(value || ''))
+  if (Number.isNaN(parsed)) {
+    return fallback
+  }
+
+  if (parsed < min) {
+    return min
+  }
+
+  if (parsed > max) {
+    return max
+  }
+
+  return parsed
+}
+
 function normalizeRoute(value) {
   if (!value || value === '/') {
-    return '/_private/resume'
+    return '/'
   }
 
   let normalized = value.trim()
@@ -44,6 +104,22 @@ function normalizeRoute(value) {
   }
 
   return normalized
+}
+
+function normalizePathname(pathname) {
+  if (!pathname || pathname === '/') {
+    return '/'
+  }
+
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    return pathname.slice(0, -1)
+  }
+
+  return pathname
+}
+
+function isRouteMatch(route, pathname) {
+  return normalizePathname(pathname) === route
 }
 
 function base64Url(buffer) {
@@ -91,6 +167,22 @@ function sendHtml(req, res, html) {
     'Cache-Control': 'private, no-store, max-age=0',
     Pragma: 'no-cache',
     'X-Robots-Tag': 'noindex, nofollow, noarchive'
+  })
+
+  if (req.method === 'HEAD') {
+    res.end()
+    return
+  }
+
+  res.end(body)
+}
+
+function sendJson(req, res, statusCode, payload) {
+  const body = Buffer.from(JSON.stringify(payload), 'utf8')
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': body.length,
+    'Cache-Control': 'no-store'
   })
 
   if (req.method === 'HEAD') {
@@ -331,6 +423,424 @@ function renderMarkdown(markdown) {
   return html.join('\n')
 }
 
+function markdownToSearchText(markdown) {
+  return markdown
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/\r/g, ' ')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function buildRepoContextText(rawJson) {
+  let repos
+  try {
+    repos = JSON.parse(rawJson)
+  } catch {
+    return ''
+  }
+
+  if (!Array.isArray(repos)) {
+    return ''
+  }
+
+  const lines = repos.slice(0, 60).map((repo) => {
+    const name = String(repo?.name || 'unknown')
+    const language = String(repo?.language || '-')
+    const description = String(repo?.description || '').trim() || 'No description provided'
+    const url = String(repo?.url || '')
+    return `${name} | ${language} | ${description}${url ? ` | ${url}` : ''}`
+  })
+
+  return `Public GitHub Projects (${repos.length} repositories): ${lines.join(' ; ')}`
+}
+
+function loadAskJoshGptContext() {
+  const definitions = [
+    { id: 'home', title: 'Home', relativePath: 'index.md', route: '/' },
+    { id: 'resume', title: 'Resume', relativePath: 'resume/index.md', route: '/resume/' },
+    { id: 'projects', title: 'Projects', relativePath: 'projects/index.md', route: '/projects/' },
+    { id: 'projects-catalog', title: 'Projects Catalog', relativePath: 'projects/public-repos.md', route: '/projects/public-repos/' },
+    { id: 'github-projects', title: 'Public GitHub Projects', relativePath: 'projects/data/public-repos.json', route: '/projects/public-repos/', isRepoJson: true }
+  ]
+
+  const sections = []
+
+  for (const definition of definitions) {
+    const absolutePath = path.join(ASK_CONTEXT_DIR, definition.relativePath)
+    let raw
+    try {
+      raw = readFileSync(absolutePath, 'utf8')
+    } catch {
+      continue
+    }
+
+    const text = definition.isRepoJson ? buildRepoContextText(raw) : markdownToSearchText(raw)
+    if (!text) {
+      continue
+    }
+
+    sections.push({
+      id: definition.id,
+      title: definition.title,
+      route: definition.route,
+      text,
+      normalized: text.toLowerCase()
+    })
+  }
+
+  return sections
+}
+
+function tokenizeQuestion(question) {
+  const terms = question
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter((term) => term.length > 2 && !ASK_STOP_WORDS.has(term))
+
+  return Array.from(new Set(terms))
+}
+
+function scoreContextSection(section, terms, question) {
+  let score = 0
+  for (const term of terms) {
+    if (section.normalized.includes(term)) {
+      score += 1
+    }
+  }
+
+  const questionSnippet = question.toLowerCase().trim()
+  if (questionSnippet.length > 0 && section.normalized.includes(questionSnippet)) {
+    score += 3
+  }
+
+  return score
+}
+
+function pickContextSections(question) {
+  if (ASK_CONTEXT_SECTIONS.length === 0) {
+    return []
+  }
+
+  const terms = tokenizeQuestion(question)
+  const scored = ASK_CONTEXT_SECTIONS
+    .map((section) => ({ section, score: scoreContextSection(section, terms, question) }))
+    .sort((left, right) => right.score - left.score)
+
+  const selected = []
+  for (const item of scored) {
+    if (item.score <= 0 && selected.length >= 3) {
+      break
+    }
+
+    selected.push(item.section)
+    if (selected.length >= 4) {
+      break
+    }
+  }
+
+  if (selected.length === 0) {
+    selected.push(...scored.slice(0, 3).map((entry) => entry.section))
+  }
+
+  const githubSection = ASK_CONTEXT_SECTIONS.find((section) => section.id === 'github-projects')
+  if (githubSection && !selected.some((section) => section.id === githubSection.id)) {
+    selected.push(githubSection)
+  }
+
+  return selected.slice(0, 5)
+}
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for']
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',')[0].trim()
+  }
+
+  return req.socket.remoteAddress || 'unknown'
+}
+
+function isRateLimited(ipAddress) {
+  const now = Date.now()
+
+  if (ASK_RATE_LIMIT_STATE.size > 5000) {
+    for (const [key, state] of ASK_RATE_LIMIT_STATE.entries()) {
+      if (now - state.startedAt > ASK_RATE_LIMIT_WINDOW_MS) {
+        ASK_RATE_LIMIT_STATE.delete(key)
+      }
+    }
+  }
+
+  const current = ASK_RATE_LIMIT_STATE.get(ipAddress)
+  if (!current || now - current.startedAt > ASK_RATE_LIMIT_WINDOW_MS) {
+    ASK_RATE_LIMIT_STATE.set(ipAddress, { count: 1, startedAt: now })
+    return false
+  }
+
+  if (current.count >= ASK_JOSHGPT_RATE_LIMIT_MAX) {
+    return true
+  }
+
+  current.count += 1
+  return false
+}
+
+async function readJsonBody(req, maxBytes) {
+  return await new Promise((resolve, reject) => {
+    const chunks = []
+    let totalBytes = 0
+
+    req.on('data', (chunk) => {
+      totalBytes += chunk.length
+      if (totalBytes > maxBytes) {
+        reject(new Error('Payload too large'))
+        req.destroy()
+        return
+      }
+
+      chunks.push(chunk)
+    })
+
+    req.on('error', (error) => {
+      reject(error)
+    })
+
+    req.on('end', () => {
+      try {
+        const body = Buffer.concat(chunks).toString('utf8')
+        if (!body.trim()) {
+          resolve({})
+          return
+        }
+
+        const parsed = JSON.parse(body)
+        resolve(parsed)
+      } catch {
+        reject(new Error('Invalid JSON body'))
+      }
+    })
+  })
+}
+
+function buildAskJoshGptPage() {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ask JoshGPT</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --fg: #151515;
+        --muted: #5a5a5a;
+        --line: #d7d9de;
+        --panel: #ffffff;
+        --accent: #0c66d6;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
+
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 24px 16px 32px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.8rem;
+      }
+
+      .muted {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 0.96rem;
+        line-height: 1.5;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+        font: inherit;
+        line-height: 1.4;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      button {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      button[disabled] {
+        opacity: 0.7;
+        cursor: wait;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .answer {
+        margin-top: 16px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+
+      .sources {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+      }
+
+      .sources ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .sources a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .toplinks {
+        margin-bottom: 12px;
+      }
+
+      .toplinks a {
+        color: var(--accent);
+        text-decoration: none;
+        margin-right: 12px;
+        font-size: 0.92rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="toplinks">
+        <a href="/">Home</a>
+        <a href="/projects/">Projects</a>
+        <a href="/resume/">Resume</a>
+      </div>
+      <div class="card">
+        <h1>Ask JoshGPT</h1>
+        <p class="muted">Ask questions about Josh Phillips Sr, this website, and the public GitHub projects list. Responses are grounded in site context.</p>
+        <textarea id="question" placeholder="Example: What MCP and AI work has Josh shipped recently?"></textarea>
+        <div class="actions">
+          <button id="ask-btn" type="button">Ask JoshGPT</button>
+          <span class="status" id="status"></span>
+        </div>
+        <div class="answer" id="answer"></div>
+        <div class="sources" id="sources" style="display:none"></div>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const questionEl = document.getElementById('question')
+        const askButtonEl = document.getElementById('ask-btn')
+        const statusEl = document.getElementById('status')
+        const answerEl = document.getElementById('answer')
+        const sourcesEl = document.getElementById('sources')
+
+        function setBusy(isBusy) {
+          askButtonEl.disabled = isBusy
+          askButtonEl.textContent = isBusy ? 'Thinking...' : 'Ask JoshGPT'
+        }
+
+        function renderSources(sources) {
+          if (!Array.isArray(sources) || sources.length === 0) {
+            sourcesEl.style.display = 'none'
+            sourcesEl.innerHTML = ''
+            return
+          }
+
+          const items = sources.map((source) => {
+            const title = String(source.title || 'Source')
+            const route = String(source.route || '#')
+            return '<li><a href="' + route + '" target="_blank" rel="noreferrer">' + title + '</a></li>'
+          }).join('')
+
+          sourcesEl.innerHTML = '<strong>Context Sources</strong><ul>' + items + '</ul>'
+          sourcesEl.style.display = ''
+        }
+
+        askButtonEl.addEventListener('click', async () => {
+          const question = questionEl.value.trim()
+          if (!question) {
+            statusEl.textContent = 'Enter a question first.'
+            return
+          }
+
+          setBusy(true)
+          statusEl.textContent = 'Searching site context...'
+          answerEl.textContent = ''
+          renderSources([])
+
+          try {
+            const response = await fetch('/api/ask-joshgpt', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ question })
+            })
+
+            const payload = await response.json().catch(() => ({}))
+            if (!response.ok) {
+              throw new Error(payload.error || 'Request failed')
+            }
+
+            answerEl.textContent = String(payload.answer || '').trim()
+            renderSources(payload.sources || [])
+            statusEl.textContent = 'Done.'
+          } catch (error) {
+            statusEl.textContent = 'Unable to complete request.'
+            answerEl.textContent = error instanceof Error ? error.message : 'Unexpected error.'
+          } finally {
+            setBusy(false)
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>`
+}
+
 function buildResumeHtmlPage(content, expiresAt) {
   const rendered = renderMarkdown(content)
   const expiresUtc = new Date(expiresAt * 1000).toISOString().replace('T', ' ').replace('.000Z', ' UTC')
@@ -501,6 +1011,127 @@ function servePrivateResume(req, res, requestUrl) {
   sendHtml(req, res, page)
 }
 
+async function askOpenAI(question, sections) {
+  const trimmedQuestion = question.trim()
+  const contextText = sections
+    .map((section, index) => {
+      const excerpt = section.text.slice(0, 3000)
+      return `[${index + 1}] ${section.title}\nSource Route: ${section.route}\n${excerpt}`
+    })
+    .join('\n\n')
+
+  const systemPrompt = [
+    'You are JoshGPT. You are searching joshphillipssr.com and Josh Phillips Sr public GitHub project context.',
+    'Use only the provided context sections.',
+    'Do not invent facts that are not present in the supplied context.',
+    'If the answer is not in context, clearly say so and suggest emailing josh@joshphillipssr.com.',
+    'Prefer concise, factual responses and include source route references when possible.'
+  ].join(' ')
+
+  const userPrompt = [
+    `Question: ${trimmedQuestion}`,
+    '',
+    'Context:',
+    contextText
+  ].join('\n')
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), ASK_JOSHGPT_TIMEOUT_MS)
+
+  let response
+  try {
+    response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: ASK_JOSHGPT_MODEL,
+        temperature: ASK_JOSHGPT_TEMPERATURE,
+        max_tokens: ASK_JOSHGPT_MAX_TOKENS,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      }),
+      signal: controller.signal
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    throw new Error(`OpenAI request failed (${response.status}): ${errorText.slice(0, 200)}`)
+  }
+
+  const payload = await response.json()
+  const answer = payload?.choices?.[0]?.message?.content
+  if (typeof answer !== 'string' || !answer.trim()) {
+    throw new Error('OpenAI response did not include text content')
+  }
+
+  return answer.trim()
+}
+
+async function handleAskJoshGpt(req, res) {
+  if (req.method !== 'POST') {
+    sendJson(req, res, 405, { error: 'Method not allowed. Use POST.' })
+    return
+  }
+
+  if (!OPENAI_API_KEY) {
+    sendJson(req, res, 503, { error: 'Ask JoshGPT is not configured on this server yet.' })
+    return
+  }
+
+  const ipAddress = getClientIp(req)
+  if (isRateLimited(ipAddress)) {
+    sendJson(req, res, 429, { error: 'Rate limit reached. Try again in a few minutes.' })
+    return
+  }
+
+  let payload
+  try {
+    payload = await readJsonBody(req, 16 * 1024)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Invalid request body'
+    sendJson(req, res, 400, { error: message })
+    return
+  }
+
+  const question = typeof payload?.question === 'string' ? payload.question.trim() : ''
+  if (question.length < 3) {
+    sendJson(req, res, 400, { error: 'Question must be at least 3 characters.' })
+    return
+  }
+
+  if (question.length > ASK_JOSHGPT_MAX_QUESTION_CHARS) {
+    sendJson(req, res, 400, { error: `Question exceeds ${ASK_JOSHGPT_MAX_QUESTION_CHARS} characters.` })
+    return
+  }
+
+  const contextSections = pickContextSections(question)
+  if (contextSections.length === 0) {
+    sendJson(req, res, 500, { error: 'No local context available for Ask JoshGPT.' })
+    return
+  }
+
+  try {
+    const answer = await askOpenAI(question, contextSections)
+    const sources = contextSections.map((section) => ({ title: section.title, route: section.route }))
+    sendJson(req, res, 200, {
+      answer,
+      sources,
+      model: ASK_JOSHGPT_MODEL
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unexpected Ask JoshGPT error'
+    sendJson(req, res, 502, { error: message })
+  }
+}
+
 function assertStartup() {
   if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
     console.error(`Invalid PORT value: ${process.env.PORT || ''}`)
@@ -521,15 +1152,26 @@ function assertStartup() {
 
 assertStartup()
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
+  const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)
+
+  if (isRouteMatch(ASK_API_ROUTE, requestUrl.pathname)) {
+    await handleAskJoshGpt(req, res)
+    return
+  }
+
   const method = req.method || 'GET'
   if (method !== 'GET' && method !== 'HEAD') {
     sendText(req, res, 405, 'Method not allowed')
     return
   }
 
-  const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)
-  if (requestUrl.pathname === RESUME_ROUTE) {
+  if (isRouteMatch(ASK_PAGE_ROUTE, requestUrl.pathname)) {
+    sendHtml(req, res, buildAskJoshGptPage())
+    return
+  }
+
+  if (isRouteMatch(RESUME_ROUTE, requestUrl.pathname)) {
     servePrivateResume(req, res, requestUrl)
     return
   }
@@ -541,4 +1183,6 @@ server.listen(PORT, () => {
   console.log(`Site server listening on port ${PORT}`)
   console.log(`Static directory: ${STATIC_DIR}`)
   console.log(`Private resume route: ${RESUME_ROUTE}`)
+  console.log(`Ask JoshGPT page route: ${ASK_PAGE_ROUTE}`)
+  console.log(`Ask JoshGPT API route: ${ASK_API_ROUTE}`)
 })

@@ -143,6 +143,32 @@ ENV_FILE=/opt/sites/<site-name>/site.env \
   /opt/sites/<site-name>/scripts/generate_private_resume_link.sh
 ```
 
+## 10. Optional: Ask JoshGPT
+
+Add this to `site.env`:
+
+```text
+OPENAI_API_KEY=<secret>
+```
+
+Optional tuning values:
+
+```text
+ASK_JOSHGPT_MODEL=gpt-4o-mini
+ASK_JOSHGPT_MAX_TOKENS=700
+ASK_JOSHGPT_TEMPERATURE=0.2
+ASK_JOSHGPT_TIMEOUT_MS=30000
+ASK_JOSHGPT_RATE_LIMIT_WINDOW_SECONDS=300
+ASK_JOSHGPT_RATE_LIMIT_MAX=10
+ASK_JOSHGPT_MAX_QUESTION_CHARS=1200
+```
+
+Then redeploy and verify:
+
+```bash
+curl -I https://<primary-hostname>/ask-joshgpt/
+```
+
 ## Troubleshooting
 
 - `network not found`: run `NETWORK_NAME=traefik_proxy /opt/traefik/scripts/create_network.sh`
@@ -150,3 +176,4 @@ ENV_FILE=/opt/sites/<site-name>/site.env \
 - TLS issues: verify Cloudflare proxy + DNS + SSL mode
 - Permission issues: run deployment as `deploy` user (or equivalent Docker-enabled user)
 - Signed link errors: verify `RESUME_SIGNING_SECRET`, link expiry, and `RESUME_PRIVATE_FILE_HOST` path
+- Ask JoshGPT errors: verify `OPENAI_API_KEY` in `site.env` and check container logs for upstream API failures
