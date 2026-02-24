@@ -29,6 +29,24 @@ Optional:
 USAGE
 }
 
+format_utc_timestamp() {
+  local ts="$1"
+
+  # BSD date (macOS)
+  if date -u -r "$ts" '+%Y-%m-%d %H:%M:%S UTC' >/dev/null 2>&1; then
+    date -u -r "$ts" '+%Y-%m-%d %H:%M:%S UTC'
+    return
+  fi
+
+  # GNU date (Linux)
+  if date -u -d "@${ts}" '+%Y-%m-%d %H:%M:%S UTC' >/dev/null 2>&1; then
+    date -u -d "@${ts}" '+%Y-%m-%d %H:%M:%S UTC'
+    return
+  fi
+
+  echo "unsupported date implementation"
+}
+
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
@@ -80,4 +98,4 @@ SIGNED_URL="${BASE_URL%/}${ROUTE}?exp=${EXPIRES_AT}&sig=${SIGNATURE}"
 
 echo "Signed URL: ${SIGNED_URL}"
 echo "Expires (unix): ${EXPIRES_AT}"
-echo "Expires (UTC):  $(date -u -r "${EXPIRES_AT}" '+%Y-%m-%d %H:%M:%S UTC')"
+echo "Expires (UTC):  $(format_utc_timestamp "${EXPIRES_AT}")"
