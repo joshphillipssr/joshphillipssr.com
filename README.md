@@ -78,6 +78,13 @@ ENV_FILE=/opt/sites/<site-name>/site.env \
   /opt/sites/<site-name>/scripts/generate_private_resume_link.sh
 ```
 
+Generate a 1-hour link:
+
+```bash
+ENV_FILE=/opt/sites/<site-name>/site.env \
+  /opt/sites/<site-name>/scripts/generate_private_resume_link_1h.sh
+```
+
 If `RESUME_PRIVATE_FILE_HOST` is set, `deploy_to_host.sh` mounts that file read-only into the container.
 
 ## Optional: Ask JoshGPT
@@ -129,6 +136,9 @@ Routes:
 
 - `scripts/generate_private_resume_link.sh`
   - Generates signed URLs with expiry for `RESUME_ROUTE`.
+
+- `scripts/generate_private_resume_link_1h.sh`
+  - Wrapper for a signed private resume URL with a fixed 1-hour TTL.
 
 - `scripts/cleanup.sh`
   - Stops/removes the site stack and deletes generated site directory.
