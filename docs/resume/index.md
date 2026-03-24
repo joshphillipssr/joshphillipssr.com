@@ -5,81 +5,70 @@
 
 ---
 
-## SUMMARY
+## EXECUTIVE PROFILE
 
-IT Systems Engineer and Consultant with 25+ years designing, deploying, and operating secure, resilient infrastructure across private sector, nonprofit, and public-sector environments. Deep technical and operational experience in virtualization, endpoint management (MDM), EDR/SIEM, Microsoft 365 and Azure/Entra ID, routing and switching, and automation.
+Security, compliance, and technology leader with 25+ years guiding secure infrastructure, identity, and operational resilience across public safety, nonprofit, private-sector, and consulting environments. Experienced translating regulatory, audit, and operational requirements into practical policies, procedures, controls, and review cadences that teams can execute.
 
-Recent focus includes architecting and operationalizing AI systems for infrastructure workflows: MCP-based control-plane design, role-routed agent orchestration, local/self-hosted LLM integrations, and governance frameworks that keep AI actions constrained, auditable, and approval-driven.
+Recent work emphasizes CJIS-aligned security governance, access and identity controls, incident response readiness, Microsoft 365 security administration, and cross-functional coordination among leadership, administrators, vendors, and partner stakeholders. Brings a combination of governance-level thinking and hands-on systems depth.
 
 ---
 
-## CORE SKILLS
+## LEADERSHIP AREAS
 
-### Networking and Infrastructure
+### Governance and Compliance
 
-- Cisco Meraki, Cisco wireless, Cisco routers/IOS, Catalyst switching
-- WAN/LAN design, SAN, UPS, backup and recovery, NAS platforms
+- Security governance, policy development, control alignment, and audit readiness
+- CJIS-aligned operations, remediation follow-through, and evidence-oriented documentation
 
-### Virtualization and Cloud
+### Identity, Access, and Endpoint Security
 
-- VMware ESXi/vSphere, VMware VDI
-- Microsoft Azure and Microsoft 365, hybrid cloud architecture, AWS
+- Microsoft 365 GCC, Entra ID, MFA, Conditional Access, and privileged access controls
+- Intune, endpoint compliance, account lifecycle governance, and least privilege
 
-### Security and Compliance
+### Security Operations and Resilience
 
-- Elastic EDR/SIEM, Microsoft 365 Defender, Cloudflare
-- VPN technologies, firewall platforms, IDS/IDP
-- Incident response, threat hunting, controls-based security operations
+- Incident response, audit logging, change control, continuity planning, and monitoring
+- Cross-functional coordination for control enforcement and operational follow-through
 
-### Systems and Administration
+### Infrastructure and Administration
 
-- Windows Server, Active Directory, DHCP, DNS, Linux administration
-- Windows Admin Center, WSUS, endpoint management for macOS and Windows, Entra ID/SSO
-- Atlassian Jira, Confluence, OpsGenie, Statuspage
+- Hybrid infrastructure, VMware ESXi/vSphere, Microsoft 365/Azure, and Windows Server
+- Cisco Meraki, Catalyst switching, routing and switching, and secure connectivity
 
 ### Automation and Tooling
 
-- PowerShell, Bash, Python
-- API integrations (Microsoft Graph, GitHub, Elastic, Atlassian)
-- Docker/Compose, Traefik, runbook-driven operations
-
-### AI and Agent Systems
-
-- Model Context Protocol (MCP) architecture and capability boundaries
-- Role-routed agent orchestration patterns (dispatcher/supervisor flows)
-- AI context engineering and governance guardrails
-- Local/self-hosted LLM workflows and AI-assisted admin tooling
+- PowerShell, Bash, Python, API integrations, and runbook-driven operations
+- Approval-driven automation and AI-assisted workflows with governance boundaries
 
 ---
 
-## EXPERIENCE
-
-**Josh Phillips LLC - IT Consultant / Systems Engineer**  
-*Jan 2016 - Present | Orlando, FL*
-
-- Provide systems engineering and consulting services across network design, implementation, security, and systems integrations.
-- Implement and manage cloud platforms, virtualization, network infrastructure, unified communications, and line-of-business systems.
-- Build PowerShell, Bash, and Python automations for Windows and Linux server/endpoint operations.
-- Develop AI-assisted workflows and train teams on practical operations use cases.
-- Designed and implemented a GitHub Issues and Exchange Online email bridge using GitHub and Microsoft Graph webhooks, tokenized thread mapping, and retry-safe processing.
-- Authored an MCP AI control-plane specification and governance model to enforce approval boundaries between AI reasoning and operational execution.
-- Built containerized MCP services for tool hosting, task dispatch, and supervisor decision capability using role-routed workflows and schema-versioned contracts.
-- Developed local/self-hosted VS Code agent workflows for code-aware engineering assistance and documentation automation.
-- Built an LLM-assisted security log analysis workflow for normalized log extraction and structured downstream analysis.
+## RELEVANT EXPERIENCE
 
 **IT Manager / Systems Lead - Public Safety Program (Florida)**  
 *Oct 2007 - Present*
 
-- Lead IT operations for a multi-agency public safety environment with strict access, identity, and audit requirements.
-- Manage hybrid infrastructure spanning on-prem systems, cloud-hosted workloads, and remote agency connectivity.
+- Lead security, compliance, and IT operations for a multi-agency public safety environment with strict access, identity, logging, and audit requirements.
+- Translate regulatory and operational obligations into practical governance, policy, procedure, and control implementation.
 - Coordinate secure interconnectivity and access governance with state, federal, and local stakeholders.
+- Oversee identity, privileged access, endpoint compliance, and Microsoft 365 security controls across hybrid and cloud-based platforms.
+- Drive incident response readiness, access review cadence, change control discipline, and audit preparation across operational teams.
+- Support CJIS-oriented security governance initiatives and related policy development efforts.
+
+**Josh Phillips LLC - Principal Consultant / Systems Engineer**  
+*Jan 2016 - Present | Orlando, FL*
+
+- Advise organizations on infrastructure, security, identity, cloud, and operations modernization.
+- Implement and manage Microsoft 365, Azure/Entra ID, virtualization, network infrastructure, endpoint management, and security tooling.
+- Build PowerShell, Bash, and Python automation for repeatable, auditable administrative workflows.
+- Develop approval-driven automation and AI-assisted operational patterns with explicit governance boundaries and least-privilege design.
+- Deliver practical improvements across monitoring, communications, ticketing, and systems administration.
 
 **Sr Systems Engineer - Pioneers**  
 *Apr 2022 - May 2024 | Orlando, FL*
 
 - Rebuilt core infrastructure, including VMware clusters and Layer 2/3 networking, and completed migration with zero planned downtime.
-- Implemented Microsoft 365/Azure services (Intune, Exchange Online, SharePoint Online, OneDrive, Entra ID) and enterprise MFA.
-- Integrated monitoring and security workflows to improve detection, response, and operational visibility.
+- Implemented Microsoft 365/Azure services, including Intune, Exchange Online, SharePoint Online, OneDrive, Entra ID, and MFA.
+- Improved security visibility and operational response through integrated monitoring and protection workflows.
 
 **Director of IT - BioSolutia**  
 *Oct 2014 - Dec 2017 | Lake Mary, FL*
@@ -109,13 +98,13 @@ Recent focus includes architecting and operationalizing AI systems for infrastru
 
 ---
 
-## SELECTED ACHIEVEMENTS
+## SELECTED LEADERSHIP HIGHLIGHTS
 
-- Delivered zero-downtime infrastructure migrations for globally distributed organizations.
-- Built secure multi-agency connectivity patterns for regulated public-sector environments.
-- Defined a governance-first MCP control-plane model with explicit trust boundaries, approval gates, and least-privilege capability separation.
-- Implemented role-routed, containerized MCP services for tool execution, dispatch coordination, and supervisor decision workflows.
-- Implemented enterprise security operations workflows combining EDR/SIEM, ticketing, proactive monitoring, and scripted remediation.
+- Led security and operational governance in public safety and other regulated environments.
+- Built access, identity, endpoint, and audit-oriented control foundations using Microsoft 365 and hybrid infrastructure platforms.
+- Coordinated secure multi-stakeholder operations across leadership, technical administrators, vendors, and partner organizations.
+- Delivered zero-downtime modernization initiatives while maintaining security and operational continuity.
+- Developed approval-driven automation approaches that improve repeatability without weakening oversight.
 
 ---
 
@@ -138,6 +127,6 @@ Security clearance details available upon request.
 
 ---
 
-## TOOLS AND TECHNOLOGIES (SELECTED)
+## SELECTED PLATFORMS
 
-PowerShell, Bash, Python, FastAPI, Microsoft Graph API, GitHub Webhooks, Docker Compose, Traefik, VMware ESXi/vSphere/VDI, Microsoft Azure, Entra ID, Intune, Exchange Online, SharePoint Online, OneDrive, Microsoft Defender, Elastic EDR/SIEM, Atlassian Jira/Confluence/OpsGenie/Statuspage, Cisco Meraki/Catalyst, Cloudflare, Veeam, NAS platforms, Ollama, MCP patterns
+Microsoft 365 GCC, Entra ID, Intune, Conditional Access, Microsoft Defender, VMware ESXi/vSphere/VDI, Windows Server, Active Directory, Cisco Meraki, Catalyst switching, Cloudflare, PowerShell, Bash, Python, Docker Compose

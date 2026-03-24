@@ -3,4 +3,6 @@ node_modules
 dist
 docs/.vitepress/cache
 docs/.vitepress/dist
+docs/.vitepress/.temp
 site.env
+private/
