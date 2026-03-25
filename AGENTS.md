@@ -46,6 +46,7 @@ Scope:
 - Live host: `neo.cfhidta.net`.
 - Use the existing host checkout and deployment scripts instead of ad-hoc file copies when updating the live site.
 - Confirm the live site directory and `site.env` on host before changing deployment behavior or private resume mount paths.
+- The live private resume is currently a single-file bind mount on Neo; when updating it, use an in-place write (for example `scripts/sync_private_resume.sh`) or restart the site container after replacing the host file inode.
 
 ## Content Safety
 

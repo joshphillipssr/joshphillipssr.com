@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Template-derived VitePress site",
   "scripts": {
+    "deps:refresh-linux": "npm install --no-package-lock",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "resume:sync-private": "./scripts/sync_private_resume.sh"
   },
   "main": "index.js",
   "license": "MIT",

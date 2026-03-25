@@ -86,6 +86,7 @@ ENV_FILE=/opt/sites/<site-name>/site.env \
 ```
 
 If `RESUME_PRIVATE_FILE_HOST` is set, `deploy_to_host.sh` mounts that file read-only into the container.
+Because the live deployment currently uses a single-file bind mount, update that file in place when syncing new private resume content. `scripts/sync_private_resume.sh` handles this safely for the current Neo deployment.
 
 ## Optional: Ask JoshGPT
 
@@ -139,6 +140,9 @@ Routes:
 
 - `scripts/generate_private_resume_link_1h.sh`
   - Wrapper for a signed private resume URL with a fixed 1-hour TTL.
+
+- `scripts/sync_private_resume.sh`
+  - Syncs `private/resume.md` to Neo using an in-place write on the mounted host file so the running container sees updated content immediately.
 
 - `scripts/cleanup.sh`
   - Stops/removes the site stack and deletes generated site directory.
