@@ -31,7 +31,7 @@ Scope:
 
 ## Dependencies and Validation
 
-- This repo is validated from the Linux-based `codex-control` environment, not from local macOS.
+- This repo is validated from the Linux-based `delegate-container` environment, not from local macOS.
 - If `node_modules` was installed on another OS or architecture, replace it with a fresh Linux install before validating.
 - Do not reuse or copy `node_modules` between macOS and Linux environments.
 - Default validation flow:
